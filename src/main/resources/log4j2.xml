@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="info">
+    <Properties>
+        <Property name="CATALINA_HOME">$${env:CATALINA_HOME}</Property>
+    </Properties>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <Pattern>%highlight{[%5p],%d,%l,%m%n}{STYLE=Logback}</Pattern>
+            </PatternLayout>
+        </Console>
+        <!--<JDBC name="jdbc" tableName="km_tbl_job_log">-->
+            <!--<DataSource jndiName="java:/comp/env/jdbc/zcdp"/>-->
+            <!--<Column name="logDate" isEventTimestamp="true"/>-->
+            <!--<Column name="logLevel" pattern="%level"/>-->
+            <!--<Column name="logClass" pattern="%logger"/>-->
+            <!--<Column name="jobExecuteClass" pattern="%mdc{job_execute_class}"/>-->
+            <!--<Column name="logMessage" pattern="%m"/>-->
+            <!--<Column name="jobState" pattern="%mdc{job_state}"/>-->
+            <!--<RegexFilter regex="kmdp_job_log" onMatch="ACCEPT" onMismatch="DENY"/>-->
+        <!--</JDBC>-->
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="jdbc"/>
+        </Root>
+    </Loggers>
+</Configuration>
+
+<!--#################################################
+OFF	0
+FATAL	100
+ERROR	200
+WARN	300
+INFO	400
+DEBUG	500
+TRACE	600
+ALL	Integer.MAX_VALUE
+
+#其中，Log4j提供的appender有以下几种：
+#org.apache.log4j.ConsoleAppender（控制台），
+#org.apache.log4j.FileAppender（文件），
+#org.apache.log4j.DailyRollingFileAppender（每天产生一个日志文件），
+#org.apache.log4j.RollingFileAppender（文件大小到达指定尺寸的时候产生一个新的文件），
+#org.apache.log4j.WriterAppender（将日志信息以流格式发送到任意指定的地方）
+
+#其中，Log4j提供的layout有以下几种：
+#org.apache.log4j.HTMLLayout（以HTML表格形式布局），
+#org.apache.log4j.PatternLayout（可以灵活地指定布局模式），
+#org.apache.log4j.SimpleLayout（包含日志信息的级别和信息字符串），
+#org.apache.log4j.TTCCLayout（包含日志产生的时间、线程、类别等等信息）
+
+#自定义样式
+# %r 输出自应用启动到输出该log信息耗费的毫秒数
+# %t 输出产生该日志事件的线程名
+# %p 输出优先级，即DEBUG，INFO，WARN，ERROR，FATAL
+# %c 输出所属类的全名(包括包名)
+# %l 输出发生的位置，在某个类的某行
+# %d 输出日志时间点的日期或时间
+# %m 输出代码中指定的讯息，如log(message)中的message
+# %n 输出一个换行符号-->

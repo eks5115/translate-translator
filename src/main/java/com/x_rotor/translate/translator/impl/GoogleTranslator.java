@@ -12,6 +12,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -28,6 +30,8 @@ import java.util.regex.Pattern;
  * Created by chensen on 2017/7/8.
  */
 public class GoogleTranslator extends AbstractTranslator {
+
+    private Logger logger = LoggerFactory.getLogger(GoogleTranslator.class);
 
     private Language language = new GoogleLanguage();
 
@@ -87,6 +91,12 @@ public class GoogleTranslator extends AbstractTranslator {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         return responseString;
@@ -114,11 +124,11 @@ public class GoogleTranslator extends AbstractTranslator {
 
         String TKK = null;
 
-        CloseableHttpClient aDefault = HttpClients.createDefault();
+        CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet request = new HttpGet("https://translate.google.cn/");
         CloseableHttpResponse response = null;
         try {
-            response = aDefault.execute(request);
+            response = httpClient.execute(request);
 
             String contentType = response.getFirstHeader("Content-type").getValue();
 
@@ -140,8 +150,17 @@ public class GoogleTranslator extends AbstractTranslator {
             matcher.find();
 
             TKK = matcher.group(1);
+
+            logger.debug("Google TKK: "+TKK);
+
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
 
@@ -171,7 +190,9 @@ public class GoogleTranslator extends AbstractTranslator {
         try {
             engine.eval(script);
             Invocable invocable = (Invocable) engine;
-            tk = (String) (String) invocable.invokeFunction("tk", query);
+            tk = (String) invocable.invokeFunction("tk", query);
+
+            logger.debug("Google tk: "+tk);
         } catch (ScriptException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
