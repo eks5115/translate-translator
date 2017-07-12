@@ -31,13 +31,12 @@ import java.util.regex.Pattern;
  */
 public class GoogleTranslator extends AbstractTranslator {
 
-    private Logger logger = LoggerFactory.getLogger(GoogleTranslator.class);
-
-    private Language language = new GoogleLanguage();
-
     private static ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
-
+    private Logger logger = LoggerFactory.getLogger(GoogleTranslator.class);
+    private Language language = new GoogleLanguage();
     private Pattern patternTKK = Pattern.compile("TKK=eval\\('\\(\\(([\\w\\W]*)\\)\\(\\)\\)'\\)");
+
+    private String tkk;
 
     @Override
     public Language getLanguage() {
@@ -122,57 +121,55 @@ public class GoogleTranslator extends AbstractTranslator {
 
     private String getTKK() {
 
-        String TKK = null;
-
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpGet request = new HttpGet("https://translate.google.cn/");
-        CloseableHttpResponse response = null;
-        try {
-            response = httpClient.execute(request);
-
-            String contentType = response.getFirstHeader("Content-type").getValue();
-
-            String charset = contentType.split("charset=")[1];
-
-            // read https://translate.google.cn/
-            String line;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    response.getEntity().getContent(), charset));
-            StringBuffer buffer = new StringBuffer();
-
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line);
-            }
-
-            // pattern TKK: from "TKK=eval('((function(){...})())')" to "function(){...}"
-            Matcher matcher = patternTKK.matcher(buffer.toString());
-
-            matcher.find();
-
-            TKK = matcher.group(1);
-
-            logger.debug("Google TKK: "+TKK);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+        if (tkk == null) {
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HttpGet request = new HttpGet("https://translate.google.cn/");
+            CloseableHttpResponse response = null;
             try {
-                httpClient.close();
+                response = httpClient.execute(request);
+
+                String contentType = response.getFirstHeader("Content-type").getValue();
+
+                String charset = contentType.split("charset=")[1];
+
+                // read https://translate.google.cn/
+                String line;
+                BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        response.getEntity().getContent(), charset));
+                StringBuffer buffer = new StringBuffer();
+
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+
+                // pattern TKK: from "TKK=eval('((function(){...})())')" to "function(){...}"
+                Matcher matcher = patternTKK.matcher(buffer.toString());
+
+                matcher.find();
+
+                tkk = matcher.group(1);
+
+                logger.debug("Google tkk: " + tkk);
+
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    httpClient.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
-
-        return TKK;
+        return tkk;
     }
 
     private String getTK(String query) {
         String tk = null;
 
-        String TKK = getTKK();
         String script ="function tk(a) {"
-                +"var TKK = eval('(("+TKK+")())');\n"
+                + "var TKK = eval('((" + getTKK() + ")())');\n"
                 +"function b(a, b) { for (var d = 0; d < b.length - 2; d += 3) { var c = b.charAt(d + 2), c = 'a' <= c ? c.charCodeAt(0) - 87 : Number(c), c = '+' == b.charAt(d + 1) ? a >>> c : a << c; a = '+' == b.charAt(d) ? a + c & 4294967295 : a ^ c } return a }\n"
                 +"for (var e = TKK.split('.'), h = Number(e[0]) || 0, g = [], d = 0, f = 0; f < a.length; f++) {"
                 +"var c = a.charCodeAt(f);"
